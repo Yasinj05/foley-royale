@@ -120,4 +120,4 @@ Start a **new room** after changing values.
 
 ## License
 
-Private / unlicensed — for personal and party use unless you add a license.
+[MIT](LICENSE) © 2026 Yasin Jafari
