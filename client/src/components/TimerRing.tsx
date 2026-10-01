@@ -14,8 +14,12 @@ export function TimerRing({ timeLeft, max, label, danger }: TimerRingProps) {
   const offset = circumference * (1 - progress);
 
   return (
-    <div className="relative flex h-28 w-28 items-center justify-center">
-      <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100">
+    <div
+      className="relative flex h-28 w-28 shrink-0 items-center justify-center"
+      role="timer"
+      aria-label={`${timeLeft} seconds left`}
+    >
+      <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100" aria-hidden>
         <circle
           cx="50"
           cy="50"
@@ -39,7 +43,7 @@ export function TimerRing({ timeLeft, max, label, danger }: TimerRingProps) {
       </svg>
       <div className="text-center">
         <div className="font-mono text-3xl font-semibold tabular-nums">{timeLeft}</div>
-        {label ? <div className="text-[10px] uppercase tracking-widest text-muted">{label}</div> : null}
+        <div className="text-xs font-bold text-muted">{label ?? "seconds"}</div>
       </div>
     </div>
   );

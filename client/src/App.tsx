@@ -50,11 +50,7 @@ export default function App() {
   }
 
   if (!turn) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted">
-        Waiting for your turn packet…
-      </div>
-    );
+    return <Waiting message="Getting the next round ready…" />;
   }
 
   if (room.state === "INITIAL_PROMPT") {
@@ -115,9 +111,16 @@ export default function App() {
     );
   }
 
+  return <Waiting message="Loading the game…" />;
+}
+
+function Waiting({ message }: { message: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center text-muted">
-      Loading studio…
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-6 text-center">
+      <p className="font-display text-3xl font-extrabold">Hang on</p>
+      <p className="text-lg text-muted" role="status">
+        {message}
+      </p>
     </div>
   );
 }

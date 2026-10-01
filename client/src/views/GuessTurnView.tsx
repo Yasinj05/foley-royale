@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import { Volume2 } from "lucide-react";
+import { ErrorNote } from "../components/ErrorNote";
 import { PlayerList } from "../components/PlayerList";
 import { TimerRing } from "../components/TimerRing";
 import { WaveformCanvas } from "../components/WaveformCanvas";
@@ -120,28 +121,25 @@ export function GuessTurnView({
   };
 
   return (
-    <div className="mx-auto grid min-h-screen max-w-5xl gap-6 px-6 py-10 lg:grid-cols-[1.3fr_0.7fr]">
+    <div className="mx-auto grid min-h-screen max-w-5xl items-center gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1.3fr_0.7fr]">
       <div>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-muted">
-              Guess step {room.currentStepIndex + 1} / {room.totalSteps}
+            <p className="text-sm font-bold text-wave">
+              Round {room.currentStepIndex + 1} of {room.totalSteps}
             </p>
-            <h1 className="font-display text-3xl font-extrabold">
-              What was that sound?
+            <h1 className="font-display text-3xl font-extrabold sm:text-4xl">
+              What did you hear?
             </h1>
+            <p className="mt-2 text-lg text-muted">Listen, then write your best guess.</p>
           </div>
-          <TimerRing
-            timeLeft={room.timeLeft}
-            max={room.timerMax || 20}
-            label="guess"
-          />
+          <TimerRing timeLeft={room.timeLeft} max={room.timerMax || 20} />
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-panel/60 p-4">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-panel/70 p-4">
           {turn.previousStep?.isPlaceholder || !turn.previousStep?.content ? (
-            <div className="flex h-40 items-center justify-center text-muted">
-              No audio — previous player skipped
+            <div className="flex h-40 items-center justify-center px-4 text-center text-lg text-muted">
+              No sound this time. The last player skipped. Guess anyway.
             </div>
           ) : (
             <WaveformCanvas canvasRef={canvasRef} />
@@ -152,41 +150,58 @@ export function GuessTurnView({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               onClick={playWithGesture}
-              className="absolute inset-4 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-studio/90 text-center backdrop-blur"
+              className="absolute inset-4 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-studio/95 text-center"
             >
-              <Volume2 size={40} className="text-wave" />
-              <span className="font-display text-2xl font-bold">Tap to Play Sound</span>
-              <span className="text-sm text-muted">Browser blocked autoplay</span>
+              <Volume2 size={40} className="text-wave" aria-hidden />
+              <span className="font-display text-2xl font-bold">Tap to hear it</span>
+              <span className="text-sm text-muted">Your browser needs a tap before sound can play.</span>
             </motion.button>
           ) : null}
         </div>
 
+        {turn.previousStep?.content && !turn.previousStep.isPlaceholder ? (
+          <button
+            type="button"
+            onClick={() => void playWithGesture()}
+            className="mt-3 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-studio px-4 py-2 text-base font-bold"
+          >
+            <Volume2 size={18} aria-hidden />
+            Hear it again
+          </button>
+        ) : null}
+
         <form
           onSubmit={submit}
-          className="mt-6 rounded-3xl border border-white/10 bg-panel/80 p-5"
+          className="mt-6 space-y-3 rounded-3xl border border-white/10 bg-panel/80 p-5"
         >
-          <input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            disabled={Boolean(submitted) || busy}
-            placeholder="Describe what you heard…"
-            maxLength={160}
-            className="w-full rounded-xl border border-white/10 bg-studio px-4 py-3 outline-none ring-wave focus:ring-2 disabled:opacity-50"
-          />
+          <label className="block space-y-2">
+            <span className="text-sm font-bold">Your guess</span>
+            <input
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              disabled={Boolean(submitted) || busy}
+              placeholder="A cat knocking over a glass"
+              maxLength={160}
+              className="w-full rounded-2xl border border-white/15 bg-studio px-4 py-3 text-base outline-none ring-wave focus:ring-2 disabled:opacity-50"
+            />
+          </label>
           <button
             type="submit"
             disabled={Boolean(submitted) || busy || !value.trim()}
-            className="mt-4 w-full rounded-xl bg-wave py-3 text-sm font-bold text-studio disabled:opacity-40"
+            className="min-h-12 w-full rounded-2xl bg-wave py-3 text-base font-extrabold text-studio disabled:cursor-not-allowed disabled:bg-studio disabled:text-muted"
           >
-            {submitted ? "Submitted — waiting" : "Submit guess"}
+            {submitted ? "Sent — waiting for the others" : "Send guess"}
           </button>
-          {error ? <p className="mt-3 text-sm text-rec">{error}</p> : null}
+          <ErrorNote message={error} />
         </form>
       </div>
 
-      <aside className="rounded-3xl border border-white/10 bg-panel/60 p-5">
-        <h2 className="mb-4 text-xs uppercase tracking-[0.25em] text-muted">
-          Progress {room.submittedCount}/{room.playerCount}
+      <aside className="rounded-3xl border border-white/10 bg-panel/70 p-5">
+        <h2 className="mb-4 text-lg font-extrabold">
+          Who's done
+          <span className="ml-2 text-sm font-bold text-muted">
+            {room.submittedCount} of {room.playerCount}
+          </span>
         </h2>
         <PlayerList players={room.players} selfId={selfId} />
       </aside>

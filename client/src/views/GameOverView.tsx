@@ -6,20 +6,21 @@ interface GameOverViewProps {
 }
 
 export function GameOverView({ books, onHome }: GameOverViewProps) {
+  const count = books?.length ?? 0;
+
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 py-12 text-center">
-      <p className="text-xs uppercase tracking-[0.3em] text-muted">That&apos;s a wrap</p>
-      <h1 className="mt-3 font-display text-5xl font-extrabold">Game over</h1>
-      <p className="mt-4 text-muted">
-        {books?.length ?? 0} album{(books?.length ?? 0) === 1 ? "" : "s"} made it
-        through the showcase.
+    <div className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 py-12 text-center">
+      <p className="text-sm font-bold text-wave">All done</p>
+      <h1 className="mt-3 font-display text-5xl font-extrabold">That was fun</h1>
+      <p className="mt-4 text-lg text-muted">
+        You went through {count} {count === 1 ? "story" : "stories"}.
       </p>
       <button
         type="button"
         onClick={onHome}
-        className="mt-10 rounded-xl bg-wave px-6 py-3 font-bold text-studio"
+        className="mt-10 min-h-12 rounded-2xl bg-wave px-8 py-3 text-base font-extrabold text-studio"
       >
-        Back to entrance
+        Play again
       </button>
     </div>
   );

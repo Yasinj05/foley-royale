@@ -97,14 +97,14 @@ export class RoomManager {
     avatarUrl?: string,
   ): Room {
     const room = this.rooms.get(roomCode.toUpperCase());
-    if (!room) throw new Error("Room not found");
-    if (room.state !== "LOBBY") throw new Error("Game already started");
-    if (room.players.size >= 8) throw new Error("Room is full");
+    if (!room) throw new Error("No game uses that code. Check it and try again.");
+    if (room.state !== "LOBBY") throw new Error("That game has already started.");
+    if (room.players.size >= 8) throw new Error("That game is full. It can hold 8 players.");
 
     const name = username.trim().slice(0, 20);
     for (const p of room.players.values()) {
       if (p.username.toLowerCase() === name.toLowerCase()) {
-        throw new Error("Username already taken in this room");
+        throw new Error("That name is taken. Pick another one.");
       }
     }
 
@@ -126,9 +126,9 @@ export class RoomManager {
 
   startGame(socketId: string): void {
     const room = this.requireRoom(socketId);
-    if (room.hostId !== socketId) throw new Error("Only the host can start");
-    if (room.state !== "LOBBY") throw new Error("Game already started");
-    if (room.players.size < 2) throw new Error("Need at least 2 players");
+    if (room.hostId !== socketId) throw new Error("Only the host can start the game.");
+    if (room.state !== "LOBBY") throw new Error("That game has already started.");
+    if (room.players.size < 2) throw new Error("You need at least 2 players to start.");
 
     room.playerOrder = [...room.players.keys()];
     room.totalSteps = chainLength(room.playerOrder.length);
@@ -158,33 +158,33 @@ export class RoomManager {
   ): void {
     const room = this.requireRoom(socketId);
     if (!this.isActiveTurnState(room.state)) {
-      throw new Error("Not accepting submissions right now");
+      throw new Error("It's not time to send an answer yet.");
     }
     if (room.playerSubmissions.has(socketId)) {
-      throw new Error("Already submitted");
+      throw new Error("You already sent this one.");
     }
 
     const assignedBookId = room.playerBookMap.get(socketId);
     if (!assignedBookId || assignedBookId !== payload.bookId) {
-      throw new Error("This book is not assigned to you");
+      throw new Error("That one isn't yours to answer.");
     }
 
     const expectedType = stepTypeForIndex(room.currentStepIndex);
     if (payload.type !== expectedType) {
-      throw new Error(`Expected a ${expectedType} submission`);
+      throw new Error("That isn't the right kind of answer for this turn.");
     }
 
     const player = room.players.get(socketId);
-    if (!player) throw new Error("Player not found");
+    if (!player) throw new Error("We couldn't find you in this game.");
 
     const book = room.books.find((b) => b.id === payload.bookId);
-    if (!book) throw new Error("Book not found");
+    if (!book) throw new Error("We couldn't find that story.");
 
     if (expectedType === "AUDIO") {
       const data = payload.content ?? "";
       const approxBytes = Math.ceil((data.length * 3) / 4);
       if (data && approxBytes > config.maxAudioBytes) {
-        throw new Error("Audio too large (max 100KB)");
+        throw new Error("That recording is too long. Try a shorter sound.");
       }
     }
 
@@ -194,7 +194,7 @@ export class RoomManager {
         : payload.content;
 
     if (expectedType === "TEXT" && !content) {
-      throw new Error("Prompt cannot be empty");
+      throw new Error("Write something before you send it.");
     }
 
     book.steps.push({
@@ -220,8 +220,8 @@ export class RoomManager {
 
   showcaseNext(socketId: string): void {
     const room = this.requireRoom(socketId);
-    if (room.hostId !== socketId) throw new Error("Only the host can advance showcase");
-    if (room.state !== "SHOWCASE") throw new Error("Not in showcase");
+    if (room.hostId !== socketId) throw new Error("Only the host can show the next part.");
+    if (room.state !== "SHOWCASE") throw new Error("The reveal hasn't started yet.");
 
     const book = room.books[room.showcase.bookIndex];
     if (!book) {
@@ -282,7 +282,7 @@ export class RoomManager {
 
     if (this.isActiveTurnState(room.state) && room.playerBookMap.has(socketId)) {
       if (!room.playerSubmissions.has(socketId)) {
-        this.fillPlaceholder(room, socketId, "Skipped due to disconnect");
+        this.fillPlaceholder(room, socketId, "Left the game");
         room.playerSubmissions.add(socketId);
         this.broadcastState(room);
         if (this.allRequiredSubmitted(room)) {
@@ -327,7 +327,7 @@ export class RoomManager {
 
   private requireRoom(socketId: string): Room {
     const room = this.getRoomBySocket(socketId);
-    if (!room) throw new Error("Not in a room");
+    if (!room) throw new Error("You're not in a game yet.");
     return room;
   }
 
@@ -446,7 +446,7 @@ export class RoomManager {
 
     for (const playerId of room.playerBookMap.keys()) {
       if (!room.playerSubmissions.has(playerId)) {
-        this.fillPlaceholder(room, playerId, "Skipped due to timeout");
+        this.fillPlaceholder(room, playerId, "Time ran out");
         room.playerSubmissions.add(playerId);
       }
     }

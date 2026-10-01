@@ -56,16 +56,15 @@ function ChatBubble({
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-2">
           <span className="text-sm font-semibold">{step.authorName}</span>
-          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted">
-            {isText ? <Type size={10} /> : <Mic size={10} />}
-            {isText ? "wrote" : "sound"}
-            {step.isPlaceholder ? " · skipped" : ""}
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-muted">
+            {isText ? <Type size={12} aria-hidden /> : <Mic size={12} aria-hidden />}
+            {step.isPlaceholder ? "Skipped this turn" : isText ? "Wrote" : "Made a sound"}
           </span>
         </div>
 
         {isText ? (
           <div
-            className={`rounded-2xl rounded-tl-md px-4 py-3 text-lg leading-snug ${
+            className={`rounded-2xl rounded-tl-md px-4 py-3 text-lg leading-snug font-semibold ${
               isLatest
                 ? "bg-wave/15 text-wave ring-1 ring-wave/30"
                 : "bg-studio/80 text-ink"
@@ -85,16 +84,16 @@ function ChatBubble({
               <button
                 type="button"
                 onClick={() => onReplay(step)}
-                className="inline-flex items-center gap-2 rounded-full bg-rec px-4 py-2 text-sm font-bold text-white"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-rec px-4 py-2 text-base font-extrabold text-white"
               >
-                <Play size={14} fill="currentColor" />
+                <Play size={16} fill="currentColor" aria-hidden />
                 Play sound
               </button>
             ) : (
-              <span className="text-sm text-muted">No recording</span>
+              <span className="text-base text-muted">No sound was recorded</span>
             )}
             {isLatest && step.content ? (
-              <span className="text-xs text-muted">Auto-playing…</span>
+              <span className="text-sm font-semibold text-muted">Playing now</span>
             ) : null}
           </div>
         )}
@@ -187,20 +186,20 @@ export function ShowcaseView({
     isLastStepOfBook && isLastBook
       ? "Finish"
       : isLastStepOfBook
-        ? "Next album"
-        : "Next";
+        ? "Next story"
+        : "Show the next part";
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8 sm:px-6">
       <header className="shrink-0">
-        <p className="text-xs uppercase tracking-[0.3em] text-muted">Showcase</p>
+        <p className="text-sm font-bold text-wave">The big reveal</p>
         <h1 className="mt-2 font-display text-3xl font-extrabold sm:text-4xl">
-          {book ? `${book.creatorName}'s album` : "Album reveal"}
+          {book ? `${book.creatorName}'s story` : "Let's see what happened"}
         </h1>
-        <p className="mt-2 text-sm text-muted">
-          Album {(showcase?.bookIndex ?? 0) + 1} /{" "}
+        <p className="mt-2 text-base text-muted">
+          Story {(showcase?.bookIndex ?? 0) + 1} of{" "}
           {showcase?.totalBooks ?? room.books.length}
-          {book ? ` · revealing ${revealed.length}/${book.steps.length}` : ""}
+          {book ? ` · part ${revealed.length} of ${book.steps.length}` : ""}
         </p>
       </header>
 
@@ -209,7 +208,7 @@ export function ShowcaseView({
         className="mt-6 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-3xl border border-white/10 bg-panel/50 p-4 sm:p-5"
       >
         {revealed.length === 0 ? (
-          <p className="py-12 text-center text-muted">Waiting for host…</p>
+          <p className="py-12 text-center text-lg text-muted">Waiting for the host…</p>
         ) : (
           <AnimatePresence initial={false}>
             {revealed.map((step, i) => (
@@ -228,10 +227,10 @@ export function ShowcaseView({
         <button
           type="button"
           onClick={() => void playWithGesture()}
-          className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-wave px-4 py-3 font-bold text-studio"
+          className="mt-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-wave px-4 py-3 text-base font-extrabold text-studio"
         >
-          <Volume2 size={18} />
-          Tap to Play Sound
+          <Volume2 size={18} aria-hidden />
+          Tap to hear it
         </button>
       ) : null}
 
@@ -239,16 +238,20 @@ export function ShowcaseView({
         <button
           type="button"
           onClick={() => void onNext()}
-          className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-rec px-6 py-3 font-bold uppercase tracking-wider"
+          className="mt-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-rec px-6 py-3 text-base font-extrabold text-white"
         >
-          {nextLabel} <ChevronRight size={18} />
+          {nextLabel} <ChevronRight size={18} aria-hidden />
         </button>
       ) : (
-        <p className="mt-4 text-center text-sm text-muted">
-          Host is revealing the chain…
+        <p className="mt-4 text-center text-base text-muted" role="status">
+          Watch along. The host will show the next part.
         </p>
       )}
-      {error ? <p className="mt-3 text-center text-sm text-rec">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="mt-3 text-center text-sm font-semibold text-ink">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

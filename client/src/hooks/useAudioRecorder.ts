@@ -56,7 +56,7 @@ export function useAudioRecorder(maxMs = 5000) {
     setMimeType(selected);
 
     if (typeof MediaRecorder === "undefined") {
-      setError("MediaRecorder is not supported in this browser");
+      setError("This browser can't record sound. Try Chrome or Safari.");
       return false;
     }
 
@@ -88,7 +88,7 @@ export function useAudioRecorder(maxMs = 5000) {
 
       return true;
     } catch {
-      setError("Microphone permission denied or unavailable");
+      setError("We need your microphone. Allow it in the browser, then try again.");
       cleanupStream();
       return false;
     }
